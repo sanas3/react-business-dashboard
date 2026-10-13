@@ -1,7 +1,11 @@
 # React Business Dashboard
 
 A responsive business dashboard built with React, TypeScript, and Vite. This portfolio project demonstrates dashboard UI development, interactive data tables, client-side filtering and sorting, reporting, and CSV export.
+## Live Demo
 
+**[View the live React Business Dashboard](https://react-business-dashboard.vercel.app/)
+
+Explore the dashboard's search, order-status filtering, sorting, reports popup, and CSV export features.
 ## Features
 
 - **Business summary cards** — display sample revenue, orders, customers, and conversion metrics.
