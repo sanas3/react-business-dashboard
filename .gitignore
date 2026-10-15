@@ -25,3 +25,7 @@ dist-ssr
 
 **/bin/
 **/obj/
+
+# Visual Studio local files
+**/.vs/
+*.csproj.user

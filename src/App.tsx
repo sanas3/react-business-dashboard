@@ -9,53 +9,87 @@ const summaryCards = [
   { title: 'Conversion Rate', value: '3.6%', change: '+0.6%' },
 ]
 
-const recentActivity = [
-  {
-    id: 'ORD-1001',
-    customer: 'Olivia Martin',
-    date: '12 Oct 2026',
-    amount: 245.0,
-    status: 'Completed',
-  },
-  {
-    id: 'ORD-1002',
-    customer: 'James Wilson',
-    date: '11 Oct 2026',
-    amount: 180.5,
-    status: 'Pending',
-  },
-  {
-    id: 'ORD-1003',
-    customer: 'Sophia Brown',
-    date: '11 Oct 2026',
-    amount: 320.0,
-    status: 'Completed',
-  },
-  {
-    id: 'ORD-1004',
-    customer: 'Liam Taylor',
-    date: '10 Oct 2026',
-    amount: 95.0,
-    status: 'Cancelled',
-  },
-  {
-    id: 'ORD-1005',
-    customer: 'Isabella Lee',
-    date: '10 Oct 2026',
-    amount: 410.25,
-    status: 'Completed',
-  },
-]
+type Order = {
+  id: string
+  customer: string
+  date: string
+  amount: number
+  status: string
+}
 
+type ApiOrder = {
+  orderId: string
+  customerName: string
+  orderDate: string
+  amount: number
+  status: string
+}
 
 type SortKey = 'id' | 'customer' | 'date'
 
 function App() {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
+
+  const [recentActivity, setRecentActivity] = useState<Order[]>([])
+const [loading, setLoading] = useState(true)
+const [error, setError] = useState('')
+
   const [showReport, setShowReport] = useState(false)
   const [sortKey, setSortKey] = useState<SortKey>('date')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
+
+  useEffect(() => {
+  const loadOrders = async () => {
+    try {
+      setLoading(true)
+      setError('')
+
+      const response = await fetch('https://localhost:7230/api/orders')
+
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`)
+      }
+
+      const data: ApiOrder[] = await response.json()
+
+      const orders: Order[] = data.map((order) => {
+        const [year, month, day] = order.orderDate.split('-').map(Number)
+
+        const formattedDate = new Date(
+          year,
+          month - 1,
+          day,
+        ).toLocaleDateString('en-AU', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+        })
+
+        return {
+          id: order.orderId,
+          customer: order.customerName,
+          date: formattedDate,
+          amount: order.amount,
+          status: order.status,
+        }
+      })
+
+      setRecentActivity(orders)
+    } catch (requestError) {
+      console.error('Failed to load orders:', requestError)
+      setError(
+        'Unable to load orders. Check that the API is running and try again.',
+      )
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  void loadOrders()
+}, [])
+
+
 
   const filteredOrders = recentActivity.filter((order) => {
     const matchesSearch =
@@ -324,7 +358,19 @@ function App() {
               </thead>
 
               <tbody>
-                {sortedOrders.length > 0 ? (
+                {loading ? (
+  <tr>
+    <td colSpan={5} className="empty-state">
+      Loading orders...
+    </td>
+  </tr>
+) : error ? (
+  <tr>
+    <td colSpan={5} className="empty-state">
+      {error}
+    </td>
+  </tr>
+) : sortedOrders.length > 0 ? (
                   sortedOrders.map((order) => (
                     <tr key={order.id}>
                       <td className="order-id">{order.id}</td>
